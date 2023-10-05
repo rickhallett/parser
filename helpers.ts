@@ -6,13 +6,22 @@ import _ from 'lodash';
  * Parser: A function that takes an input string (or a stream) and returns some structured data along with the remainder of the string.
  */
 
+type ParserInput = any;
+type ParserOutput = [any, ParserInput] | undefined;
+type Parser = (input: ParserInput) => ParserOutput;
+
 // splits into parts for the next operation
-export const shift = (input: string): [string, string] | undefined => {
+export const shift = (input: string): ParserOutput => {
   if (!input.length) {
     return undefined;
   }
 
   return [input[0], input.substring(1)];
+};
+
+// inverse of shift
+export const nothing = (input: string): ParserOutput => {
+  return [undefined, input];
 };
 
 /**
@@ -23,8 +32,8 @@ export const shift = (input: string): [string, string] | undefined => {
 
 export const map =
   (mapper: Function) =>
-  (parser: Function) =>
-  (input: string): [string, string] | undefined => {
+  (parser: Parser) =>
+  (input: ParserInput): ParserOutput => {
     const output = parser(input);
 
     if (output === undefined) {
@@ -43,8 +52,8 @@ export const map =
 
 export const filter =
   (predicate: Function) =>
-  (parser: Function) =>
-  (input: string): [string, string] | undefined => {
+  (parser: Parser) =>
+  (input: ParserInput): ParserOutput => {
     const output = parser(input);
 
     if (output === undefined) {
@@ -77,9 +86,27 @@ export const digit = filter(isDigit)(shift);
  * A higher-order function that takes one or more parsers and returns a new parser that combines their behavior in some way. oneOrMore is a parser combinator because it takes a parser and returns a new parser that tries to apply the original parser one or more times.
  */
 
+// choice takes a list of parsers, returns the output of the first parser that worked
+export const choice =
+  (...parsers: Parser[]) =>
+  (input: ParserInput): ParserOutput => {
+    if (parsers.length === 0) {
+      return undefined;
+    }
+
+    const [parser, ...rest] = parsers;
+    const output = parser(input);
+
+    if (output !== undefined) {
+      return output;
+    }
+
+    return choice(...rest)(input);
+  };
+
 export const oneOrMore =
-  (parser: Function) =>
-  (input: string, acc: any[] = []): [any[], string] | undefined => {
+  (parser: Parser) =>
+  (input: ParserInput, acc: any[] = []): ParserOutput => {
     // Added an accumulator parameter
     const output = parser(input);
 
@@ -96,34 +123,34 @@ export const oneOrMore =
     return oneOrMore(parser)(tail, [...acc, head]); // Recursive call with updated tail and accumulator
   };
 
-/**
- * zeroOrMore(parser): This should try to apply the parser zero or more times until it fails. It should return an array containing all the parsed elements.
- *
- * For zeroOrMore, think about how it's different and similar to oneOrMore. Could you implement it by reusing oneOrMore in some way?
- */
-
-export const zeroOrMore =
-  (parser: Function) =>
-  (input: string, acc: any[] = []): [any[], string] | undefined => {
-    const output = oneOrMore(parser)(input);
-
-    if (output === undefined) {
-      return [[], input];
-    }
-
-    return output;
-  };
+export const zeroOrMore = (parser: Parser) =>
+  choice(oneOrMore(parser), map(() => [])(nothing));
 
 /**
  * sequence(parsers): This should take an array of parsers and apply them sequentially to the input. If any of the parsers fail, sequence should also fail. Otherwise, it should return an array containing the parsed elements in the order they were parsed.
- *
- * For sequence, you'll likely need to manage state between multiple parsers. Think about how you could achieve this in a functional way.
  */
 
 export const sequence =
-  (parsers: Function[]) =>
-  (input: string): [any[], string] | undefined => {
-    throw new Error('Not yet implemented');
+  (...parsers: Parser[]) =>
+  (input: ParserInput, acc: any[] = []): ParserOutput => {
+    if (parsers.length === 0) {
+      return undefined;
+    }
+
+    const [parser, ...rest] = parsers;
+    const output = parser(input);
+
+    if (output === undefined) {
+      return undefined;
+    }
+
+    const [head, tail] = output;
+
+    if (rest.length === 0) {
+      return [[...acc, head], tail];
+    }
+
+    return sequence(...rest)(tail, [...acc, head]);
   };
 
 /**
