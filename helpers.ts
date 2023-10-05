@@ -120,6 +120,12 @@ export const zeroOrMore =
  * For sequence, you'll likely need to manage state between multiple parsers. Think about how you could achieve this in a functional way.
  */
 
+export const sequence =
+  (parsers: Function[]) =>
+  (input: string): [any[], string] | undefined => {
+    throw new Error('Not yet implemented');
+  };
+
 /**
  * Once you've completed this challenge, you'll have a set of building blocks for a more complex parser, and you'll gain deeper insights into functional programming paradigms and how they can be applied in JavaScript/TypeScript.
  */

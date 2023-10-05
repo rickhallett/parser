@@ -9,6 +9,7 @@ import {
   oneOrMore,
   digit,
   zeroOrMore,
+  sequence,
 } from './helpers';
 
 describe('Helper functions', () => {
@@ -76,64 +77,75 @@ describe('Helper functions', () => {
     });
   });
 
-  describe('oneOrMore', () => {
-    describe('shift', () => {
-      test("'123' => [['1','2','3'],'']", () => {
-        expect(oneOrMore(shift)('123')).toEqual([['1', '2', '3'], '']);
-      });
-    });
-
-    describe('map', () => {
-      test("'123' => [[1,2,3],'']", () => {
-        expect(oneOrMore(map(_.parseInt)(shift))('123')).toEqual([
-          [1, 2, 3],
-          '',
-        ]);
-      });
-
-      describe('map filter', () => {
+  describe('parser combinators', () => {
+    describe('oneOrMore', () => {
+      describe('shift', () => {
         test("'123' => [['1','2','3'],'']", () => {
-          expect(
-            oneOrMore(map(Number.parseInt)(filter(isDigit)(shift)))('123'),
-          ).toEqual([[1, 2, 3], '']);
+          expect(oneOrMore(shift)('123')).toEqual([['1', '2', '3'], '']);
+        });
+      });
 
-          expect(oneOrMore(map(Number.parseInt)(digit))('123')).toEqual([
+      describe('map', () => {
+        test("'123' => [[1,2,3],'']", () => {
+          expect(oneOrMore(map(_.parseInt)(shift))('123')).toEqual([
             [1, 2, 3],
             '',
           ]);
+        });
 
-          expect(oneOrMore(map(Number.parseInt)(digit))('abc')).toEqual(
-            undefined,
-          );
+        describe('map filter', () => {
+          test("'123' => [['1','2','3'],'']", () => {
+            expect(
+              oneOrMore(map(Number.parseInt)(filter(isDigit)(shift)))('123'),
+            ).toEqual([[1, 2, 3], '']);
 
-          const noTransform = (el: any) => el;
+            expect(oneOrMore(map(Number.parseInt)(digit))('123')).toEqual([
+              [1, 2, 3],
+              '',
+            ]);
 
-          expect(oneOrMore(map(noTransform)(letter))('abc')).toEqual([
-            ['a', 'b', 'c'],
-            '',
+            expect(oneOrMore(map(Number.parseInt)(digit))('abc')).toEqual(
+              undefined,
+            );
+
+            const noTransform = (el: any) => el;
+
+            expect(oneOrMore(map(noTransform)(letter))('abc')).toEqual([
+              ['a', 'b', 'c'],
+              '',
+            ]);
+          });
+        });
+      });
+    });
+    describe('zeroOrMore', () => {
+      describe('filter digit', () => {
+        test("'abc' => [[], 'abc'", () => {
+          expect(zeroOrMore(digit)('abc')).toEqual([[], 'abc']);
+        });
+
+        test("'123abc' => [['1','2','3'], 'abc'", () => {
+          expect(zeroOrMore(digit)('123abc')).toEqual([['1', '2', '3'], 'abc']);
+        });
+      });
+
+      describe('map parseInt filter digit', () => {
+        test("'123abc' => [[1,2,3], 'abc'", () => {
+          expect(zeroOrMore(map(Number.parseInt)(digit))('123abc')).toEqual([
+            [1, 2, 3],
+            'abc',
           ]);
         });
       });
     });
-  });
 
-  describe('zeroOrMore', () => {
-    describe('filter digit', () => {
-      test("'abc' => [[], 'abc'", () => {
-        expect(zeroOrMore(digit)('abc')).toEqual([[], 'abc']);
+    describe('sequence', () => {
+      test("sequence([digit, letter])('1a2') => [[1, 'a'], '2']", () => {
+        expect(sequence([digit, letter])('1a2')).toEqual([['1', 'a'], '2']);
       });
 
-      test("'123abc' => [['1','2','3'], 'abc'", () => {
-        expect(zeroOrMore(digit)('123abc')).toEqual([['1', '2', '3'], 'abc']);
-      });
-    });
-
-    describe('map parseInt filter digit', () => {
-      test("'123abc' => [[1,2,3], 'abc'", () => {
-        expect(zeroOrMore(map(Number.parseInt)(digit))('123abc')).toEqual([
-          [1, 2, 3],
-          'abc',
-        ]);
+      test("sequence([letter, digit])('1a2') => undefined", () => {
+        expect(sequence([letter, digit])('1a2')).toEqual([['1', 'a'], '2']);
       });
     });
   });
