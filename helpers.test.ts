@@ -140,22 +140,22 @@ describe('Helper functions', () => {
     });
 
     describe('sequence', () => {
-      test("sequence([digit, letter])('1a2') => [['1', 'a'], '2']", () => {
+      test("sequence(digit, letter)('1a2') => [['1', 'a'], '2']", () => {
         expect(sequence(digit, letter)('1a2')).toEqual([['1', 'a'], '2']);
       });
 
-      test("sequence([letter, digit])('1a2') => undefined", () => {
+      test("sequence(letter, digit)('1a2') => undefined", () => {
         expect(sequence(letter, digit)('1a2')).toEqual(undefined);
       });
 
-      test("sequence([digit, letter, digit])('1a2') => [['1', 'a', '2'],''", () => {
+      test("sequence(digit, letter, digit)('1a2') => [['1', 'a', '2'],''", () => {
         expect(sequence(digit, letter, digit)('1a2')).toEqual([
           ['1', 'a', '2'],
           '',
         ]);
       });
 
-      test("sequence([digit, letter, digit])('1a2') => undefined", () => {
+      test("sequence()('1a2') => undefined", () => {
         expect(sequence()('1a2')).toEqual(undefined);
       });
     });
