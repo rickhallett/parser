@@ -96,4 +96,30 @@ export const oneOrMore =
     return oneOrMore(parser)(tail, [...acc, head]); // Recursive call with updated tail and accumulator
   };
 
-console.log(oneOrMore(map(_.parseInt)(shift))('123'));
+/**
+ * zeroOrMore(parser): This should try to apply the parser zero or more times until it fails. It should return an array containing all the parsed elements.
+ *
+ * For zeroOrMore, think about how it's different and similar to oneOrMore. Could you implement it by reusing oneOrMore in some way?
+ */
+
+export const zeroOrMore =
+  (parser: Function) =>
+  (input: string, acc: any[] = []): [any[], string] | undefined => {
+    const output = oneOrMore(parser)(input);
+
+    if (output === undefined) {
+      return [[], input];
+    }
+
+    return output;
+  };
+
+/**
+ * sequence(parsers): This should take an array of parsers and apply them sequentially to the input. If any of the parsers fail, sequence should also fail. Otherwise, it should return an array containing the parsed elements in the order they were parsed.
+ *
+ * For sequence, you'll likely need to manage state between multiple parsers. Think about how you could achieve this in a functional way.
+ */
+
+/**
+ * Once you've completed this challenge, you'll have a set of building blocks for a more complex parser, and you'll gain deeper insights into functional programming paradigms and how they can be applied in JavaScript/TypeScript.
+ */

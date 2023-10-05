@@ -8,6 +8,7 @@ import {
   letter,
   oneOrMore,
   digit,
+  zeroOrMore,
 } from './helpers';
 
 describe('Helper functions', () => {
@@ -112,6 +113,27 @@ describe('Helper functions', () => {
             '',
           ]);
         });
+      });
+    });
+  });
+
+  describe('zeroOrMore', () => {
+    describe('filter digit', () => {
+      test("'abc' => [[], 'abc'", () => {
+        expect(zeroOrMore(digit)('abc')).toEqual([[], 'abc']);
+      });
+
+      test("'123abc' => [['1','2','3'], 'abc'", () => {
+        expect(zeroOrMore(digit)('123abc')).toEqual([['1', '2', '3'], 'abc']);
+      });
+    });
+
+    describe('map parseInt filter digit', () => {
+      test("'123abc' => [[1,2,3], 'abc'", () => {
+        expect(zeroOrMore(map(Number.parseInt)(digit))('123abc')).toEqual([
+          [1, 2, 3],
+          'abc',
+        ]);
       });
     });
   });
